@@ -1,34 +1,36 @@
 /*
+        (Was getting errors on the original hangman code 
+        so I implemented my own. I apologize for this 
+        not being exactly like the directions.)
         HANGMAN
+        Dominick Ferro
+        Programming 2
+        Alex Jaeger 
 */
 #include <iostream>
+#include <cstdlib>
+#include <ctime>
 #include <string>
-#include <random>
-#include <ctype.h>
 
 using namespace std;
 
-void fillLetters (char, string);
-int chooseRandomCountry ();
-void pauseConsole ();
-void printGameBoard (string);
-char processUserInput ();
-void clearConsole ();
-bool isGameDone (string);
-void printGameOver (string guess);
-bool isGameSuccessful (string currentGuess);
-void printNumberOfTries ();
+//The maximum amount of tries allowed is 4
+const int MAX_TRIES=4;
 
-const int numCountries = 30;
-int padding = 3; // number of spaces on each side of the word
+int letterFill (char, string, string&);
 
-// These variables are important to keep in mind
-const int maxNumberGuesses = 4;
-int currentGuessNumber = 0;
-string currentGuessString = "";
-string correctCountry = "";
+//main body code 
+int main ()
+{
+string name;
+char letter;
+//number of wrong guesses starts at 0
+int num_of_wrong_guesses=0;
 
-string countries [] = {
+string word;
+string words[] =
+{
+//30 countries that can be played
     "senegal",
     "serbia",
     "seychelles",
@@ -61,99 +63,86 @@ string countries [] = {
     "venezuela",
 };
 
-int main () {
-    clearConsole();
+//choose word from array of words and copy randomly
+srand(time(NULL));
+int n=rand()% 10;
+word=words[n];
 
-    correctCountry = countries[chooseRandomCountry()];
+// The hidden country is shown with the * character.
+string unknown(word.length(),'*');
+cout<<"+-----------+"<<endl;
+cout<<"|***********|"<<endl;
+cout<<"|***********|"<<endl;
+cout<<"+-----------+"<<endl;
 
-    // this will initialize the currentGuess String to
-    // be the same length as the chosen county but contain only asterisks
-	currentGuessString = std::string(correctCountry.length(), '*');
+// Greet the user
+cout << "\n\nWelcome to hangman...in order to begin, please guess a letter!";
+cout << "\n\nEach letter is represented by a star and the letter is lowercase.";
+cout << "\n\nYou have " << MAX_TRIES << " tries to try and guess the word.";
+cout << "\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 
-    while (isGameDone(currentGuessString) == false) {
-        printGameBoard(currentGuessString);
-        printNumberOfTries();
-        char userGuess = processUserInput();
-        fillLetters(userGuess, correctCountry);
+// Loop until there are no more guesses
+while (num_of_wrong_guesses < MAX_TRIES)
+{
+cout << "\n\n" << unknown;
+cout << "\n\nGuess a letter: ";
+cin >> letter;
 
-        clearConsole();
-    }
+// Fill secret country with letter if the guess is correct,
+// otherwise add to number of wrong guesses.
+if (letterFill(letter, word, unknown)==0)
+{
+cout << endl << "Incorrect!" << endl;
+num_of_wrong_guesses++;
+}
+else
+{
+cout << endl << "Correct!" << endl;
+}
+// Tell user how many guesses there are left.
+cout << "You have " << MAX_TRIES - num_of_wrong_guesses;
+cout << " guesses left." << endl;
 
-    printGameOver(currentGuessString);
+// Check if user guessed the correct word.
+if (word==unknown)
+{
+cout << word << endl;
+cout << "You win!";
+break;
 }
 
-bool isGameDone (string currentGuess) {
-    /*  This function determines if the game is over */
-
-    return true; // placeholder
+}
+if(num_of_wrong_guesses == MAX_TRIES)
+{
+cout << "\nYou lose." << endl;
+cout << "The word was : " << word << endl;
+}
+cin.ignore();
+cin.get();
+return 0;
 }
 
-bool isGameSuccessful (string currentGuess) {
-    /*  This function determines if a player succesfully
-        guessed all of the characters
-    */
+/* Take one char guess and the secret word, fill in the
+guessword. Returns the number of chars matched as well as 
+returns zero if the character is already guessed. */
+int letterFill (char guess, string secretword, string &guessword)
+{
+int i;
+int matches=0;
+int len=secretword.length();
+for (i = 0; i< len; i++)
+{
+//Was this letter matched already in a previous guess?
+if (guess == guessword[i])
+return 0;
 
-    return false; // placeholder
+// Is the letter guessed a part of the secret word?
+if (guess == secretword[i])
+{
+guessword[i] = guess;
+matches++;
 }
-
-void printGameOver (string currentGuess) {
-    /*
-        This function will print out the game board with a message at the bottom
-        "CONGRATS" if the the player was successful and "YOU FAILED" if they werent.
-    */
 }
-
-void printGameBoard (string guess) {
-    /*
-        This function will print out a rectangle to contain the
-        current guess and the line
-
-        The width of the box is the length of the guess string + 2*padding.
-        The padding defines the number of spaces on either side of the underline
-    */
+return matches;
 }
-
-void printNumberOfTries () {
-    /* this function will print out the number of tries that the user has attempted
-        as well as a message
-    */
-}
-
-char processUserInput () {
-    /*
-        This function will print out a message for the user to enter a character
-        The character will then be returned,
-    */
-
-    return 'n'; // placeholder
-}
-
-void fillLetters (char guessChar, string secretWord) {
-    /*
-        This function will modify the global variable currentGuessString.
-        If any characters in the secretWord match with the guessChar, those
-        characters in currentGuessString need to be changed.
-    */
-}
-
-void pauseConsole () {
-    std::string temp;
-    std::cout << "Enter to continue... ";
-    std::getline(std::cin, temp);
-}
-
-void clearConsole () {
-    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-    	system("cls");
-    #else
-        system("clear");
-    #endif
-}
-
-int chooseRandomCountry () {
-    random_device seed;
-    default_random_engine engine(seed());
-    uniform_int_distribution<int> dist(0, numCountries-1);
-
-    return dist(engine);
-}
+//end of code
